@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 import st_pages as st_pages
 import os
+import langchain_openai as langchain_openai 
 
 st.set_page_config(
         page_title="Healthcare KOL",
