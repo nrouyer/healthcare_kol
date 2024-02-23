@@ -50,29 +50,19 @@ vectorstore = Neo4jVector.from_existing_graph(
     url=url,
     username=username,
     password=password,
-    index_name='articledescription',
-    node_label="Article",
-    text_node_properties=['titre', 'description', 'texte'],
-    embedding_node_property='embedding',
+    index_name='ct_vector_index',
+    node_label="ClinicalTrial",
+    text_node_properties=['study_title', 'summary'],
+    embedding_node_property='ctembedding',
 )
 
 vector_qa = RetrievalQA.from_chain_type(
     llm=ChatOpenAI(), chain_type="stuff", retriever=vectorstore.as_retriever())
 
 contextualize_query = """
-match (node)-[:DOCUMENTE]->(e:Evenement)
-WITH node AS a, e, score, {} as metadata limit 1
-OPTIONAL MATCH (e)<-[:EXPLIQUE]-(f:Facteur)-[:EXPLIQUE]->(e2:Evenement)
-WITH a, e, score, metadata, apoc.text.join(collect(e2.description), ",") AS autres_evenements
-RETURN "Evenement : "+ e.description + " autres événements expliqués par les mêmes facteurs : " + coalesce(autres_evenements, "") +"\n" as text, score, metadata
-"""
-
-contextualize_query1 = """
-match (node)-[:DOCUMENTE]->(e:Evenement)
-WITH node AS a, e, score, {} as metadata limit 1
-OPTIONAL MATCH (e)<-[:EXPLIQUE]-(:Facteur)
-WITH a, e, i, f, score, metadata
-RETURN "Titre Article: "+ a.titre + " description: "+ a.description + " facteur: "+ coalesce(f.name, "")+ "\n" as text, score, metadata
+match (node)<-[:PARTICIPATES_IN]->(hcp:HCP)
+WITH node AS ct, hcp, score, {} as metadata limit 5
+RETURN "ClinicalTrial : "+ ct.study_title + " enriched context of HCP working on clinical trials : " + coalesce(apoc.text.join(collect(custom.hcp.pubctContext(hcp)),"\n"), "") +"\n" as text, score, metadata
 """
 
 contextualized_vectorstore = Neo4jVector.from_existing_index(
@@ -80,7 +70,7 @@ contextualized_vectorstore = Neo4jVector.from_existing_index(
     url=url,
     username=username,
     password=password,
-    index_name="articledescription",
+    index_name="ct_vector_index",
     retrieval_query=contextualize_query,
 )
 
@@ -94,13 +84,13 @@ question = container.text_input("**:blue[Question:]**", "")
 if question:
     tab1, tab2, tab3 = st.tabs(["No-RAG", "Basic RAG", "Augmented RAG"])
     with tab1:
-        st.markdown("**:blue[No-RAG.] LLM seulement. Réponse générée par l'IA générative seule:**")
+        st.markdown("**:blue[No-RAG.] LLM only. AI responds to question; can lcause hallucinations:**")
         st.write(llm(question))
     with tab2:
-        st.markdown("**:blue[Basic RAG.] Réponse par recherche vectorielle:**")
+        st.markdown("**:blue[Basic RAG.] Simple Vector Search:**")
         st.write(vector_qa.run(question))
     with tab3:
-        st.markdown("**:blue[Augmented RAG.] Réponse par recherche vectorielle ET par augmentation de contexte:**")
+        st.markdown("**:blue[Augmented RAG.] Vector Search on clinical trials plus HCP context:**")
         st.write(vector_plus_context_qa.run(question))
 
 
