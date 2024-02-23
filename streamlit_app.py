@@ -23,7 +23,7 @@ show_pages_from_config()
 # Find Key Opinion Leader
 """
 
-#st.image('images/chatgpt_accident.png', caption='Accidents', width=500)
+st.image('images/healthcare_kol.jpg', caption='KOL', width=400)
 
 # openai_api_key = st.secrets["OPENAI_KEY"]
 
