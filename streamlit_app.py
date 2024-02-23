@@ -50,10 +50,10 @@ vectorstore = Neo4jVector.from_existing_graph(
     url=url,
     username=username,
     password=password,
-    index_name='ct-summary-embeddings',
-    node_label="ClinicalTrial",
-    text_node_properties=['summary'],
-    embedding_node_property='summaryEmbedding',
+    index_name='publications',
+    node_label="Publication",
+    text_node_properties=['abstract', 'title'],
+    embedding_node_property='embedding',
 )
 
 vector_qa = RetrievalQA.from_chain_type(
@@ -61,10 +61,10 @@ vector_qa = RetrievalQA.from_chain_type(
 
 contextualize_query = """
 match (node)<-[:PARTICIPATES_IN]-(hcp:HCP)
-WITH node AS ct, hcp, score, {} as metadata limit 5
-WITH ct, score, metadata, hcp, custom.hcp.pubctContext(hcp) AS hcpContext
-WITH ct, score, metadata, collect(hcpContext) AS hcpContexts
-RETURN "ClinicalTrial : "+ ct.study_title + " enriched context of HCP working on clinical trials : " + coalesce(apoc.text.join(hcpContexts,"\n"), "") +"\n" as text, score, metadata
+WITH node AS pub, hcp, score, {} as metadata limit 5
+WITH pub, score, metadata, hcp, custom.hcp.pubctContext(hcp) AS hcpContext
+WITH pub, score, metadata, collect(hcpContext) AS hcpContexts
+RETURN "Publication : "+ pub.title + " enriched context of HCP working on publication : " + coalesce(apoc.text.join(hcpContexts,"\n"), "") +"\n" as text, score, metadata
 """
 
 contextualized_vectorstore = Neo4jVector.from_existing_index(
@@ -72,7 +72,7 @@ contextualized_vectorstore = Neo4jVector.from_existing_index(
     url=url,
     username=username,
     password=password,
-    index_name="ct-summary-embeddings",
+    index_name="publications",
     retrieval_query=contextualize_query,
 )
 
@@ -92,7 +92,7 @@ if question:
         st.markdown("**:blue[Basic RAG.] Simple Vector Search:**")
         st.write(vector_qa.run(question))
     with tab3:
-        st.markdown("**:blue[Augmented RAG.] Vector Search on clinical trials plus HCP context:**")
+        st.markdown("**:blue[Augmented RAG.] Vector Search on publications plus HCP context:**")
         st.write(vector_plus_context_qa.run(question))
 
 
