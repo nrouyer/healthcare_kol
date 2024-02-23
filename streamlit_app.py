@@ -50,10 +50,10 @@ vectorstore = Neo4jVector.from_existing_graph(
     url=url,
     username=username,
     password=password,
-    index_name='ct_vector_index',
+    index_name='ct-summary-embeddings',
     node_label="ClinicalTrial",
-    text_node_properties=['study_title', 'summary'],
-    embedding_node_property='ctembedding',
+    text_node_properties=['summary'],
+    embedding_node_property='summaryEmbedding',
 )
 
 vector_qa = RetrievalQA.from_chain_type(
@@ -72,7 +72,7 @@ contextualized_vectorstore = Neo4jVector.from_existing_index(
     url=url,
     username=username,
     password=password,
-    index_name="ct_vector_index",
+    index_name="ct-summary-embeddings",
     retrieval_query=contextualize_query,
 )
 
@@ -86,7 +86,7 @@ question = container.text_input("**:blue[Question:]**", "")
 if question:
     tab1, tab2, tab3 = st.tabs(["No-RAG", "Basic RAG", "Augmented RAG"])
     with tab1:
-        st.markdown("**:blue[No-RAG.] LLM only. AI responds to question; can lcause hallucinations:**")
+        st.markdown("**:blue[No-RAG.] LLM only. AI responds to question; can cause hallucinations:**")
         st.write(llm(question))
     with tab2:
         st.markdown("**:blue[Basic RAG.] Simple Vector Search:**")
