@@ -48,25 +48,25 @@ graph = Neo4jGraph(
 
 llm = OpenAI()
 
-#vectorstore = Neo4jVector.from_existing_graph(
-#    OpenAIEmbeddings(),
-#    url=url,
-#    username=username,
-#    password=password,
-#    index_name='publications',
-#    node_label="Publication",
-#    text_node_properties=['abstract', 'title'],
-#    embedding_node_property='embedding',
-#)
-
-# from existing index
-vectorstore = Neo4jVector.from_existing_index(
+vectorstore = Neo4jVector.from_existing_graph(
     OpenAIEmbeddings(),
     url=url,
     username=username,
     password=password,
     index_name="publications",
+    node_label="Publication",
+    text_node_properties=["abstract", "title"],
+    embedding_node_property="pubEmbedding",
 )
+
+# from existing index
+#vectorstore = Neo4jVector.from_existing_index(
+#    OpenAIEmbeddings(),
+#    url=url,
+#    username=username,
+#    password=password,
+#    index_name="publications",
+#)
 
 vector_qa = RetrievalQA.from_chain_type(
     llm=ChatOpenAI(), chain_type="stuff", retriever=vectorstore.as_retriever())
