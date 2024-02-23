@@ -60,7 +60,7 @@ vector_qa = RetrievalQA.from_chain_type(
     llm=ChatOpenAI(), chain_type="stuff", retriever=vectorstore.as_retriever())
 
 contextualize_query = """
-match (node)<-[:PARTICIPATES_IN]->(hcp:HCP)
+match (node)<-[:PARTICIPATES_IN]-(hcp:HCP)
 WITH node AS ct, hcp, score, {} as metadata limit 5
 WITH ct, score, metadata, hcp, custom.hcp.pubctContext(hcp) AS hcpContext
 WITH ct, score, metadata, collect(hcpContext) AS hcpContexts
