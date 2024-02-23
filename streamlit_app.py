@@ -73,7 +73,7 @@ vector_qa = RetrievalQA.from_chain_type(
 
 contextualize_query = """
 match (node)<-[:PARTICIPATES_IN]-(hcp:HCP)
-WITH node AS pub, hcp, score, {} as metadata limit 5
+WITH node AS pub, hcp, score, {} as metadata limit 1
 WITH pub, score, metadata, hcp, custom.hcp.pubctContext(hcp) AS hcpContext
 WITH pub, score, metadata, collect(hcpContext) AS hcpContexts
 RETURN "Publication : "+ pub.title + " enriched context of HCP working on publication : " + coalesce(apoc.text.join(hcpContexts,"\n"), "") +"\n" as text, score, metadata
