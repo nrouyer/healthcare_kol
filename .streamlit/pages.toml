@@ -1,0 +1,4 @@
+[[pages]]
+path = "streamlit_app.py"
+name = "Find KOL"
+icon = ":doctor:"
