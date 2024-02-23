@@ -4,7 +4,6 @@ streamlit
 neo4j
 googlesearch-python
 langchain
-langchain_community
 openai
 tiktoken
 cohere
@@ -13,3 +12,5 @@ streamlit_extras
 requests
 bs4
 retry
+langchain_openai
+langchain_community

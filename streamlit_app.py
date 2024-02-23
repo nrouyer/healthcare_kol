@@ -2,6 +2,7 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
+import st_pages as st_pages
 import os
 
 st.set_page_config(
