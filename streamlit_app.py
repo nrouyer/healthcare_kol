@@ -26,12 +26,13 @@ show_pages_from_config()
 
 # openai_api_key = st.secrets["OPENAI_KEY"]
 
-from langchain_community.llms import OpenAI
+#from langchain_community.llms import OpenAI
+from langchain_openai import OpenAI
 from langchain_community.graphs import Neo4jGraph
 from langchain.chains import RetrievalQA
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.vectorstores.neo4j_vector import Neo4jVector
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 
 os.environ['OPENAI_API_KEY'] = st.secrets["OPENAI_KEY"]
 url = st.secrets["AAA_URI"]
@@ -46,15 +47,24 @@ graph = Neo4jGraph(
 
 llm = OpenAI()
 
-vectorstore = Neo4jVector.from_existing_graph(
+#vectorstore = Neo4jVector.from_existing_graph(
+#    OpenAIEmbeddings(),
+#    url=url,
+#    username=username,
+#    password=password,
+#    index_name='publications',
+#    node_label="Publication",
+#    text_node_properties=['abstract', 'title'],
+#    embedding_node_property='embedding',
+#)
+
+# from existing index
+vectorstore = Neo4jVector.from_existing_index(
     OpenAIEmbeddings(),
     url=url,
     username=username,
     password=password,
-    index_name='publications',
-    node_label="Publication",
-    text_node_properties=['abstract', 'title'],
-    embedding_node_property='embedding',
+    index_name="publications",
 )
 
 vector_qa = RetrievalQA.from_chain_type(
