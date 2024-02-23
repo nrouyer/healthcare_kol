@@ -64,7 +64,7 @@ match (node)<-[:PARTICIPATES_IN]->(hcp:HCP)
 WITH node AS ct, hcp, score, {} as metadata limit 5
 WITH ct, score, metadata, hcp, custom.hcp.pubctContext(hcp) AS hcpContext
 WITH ct, score, metadata, collect(hcpContext) AS hcpContexts
-RETURN "ClinicalTrial : "+ ct.study_title + " enriched context of HCP working on clinical trials : " + coalesce(apoc.text.join(hcpContexts),"\n"), "") +"\n" as text, score, metadata
+RETURN "ClinicalTrial : "+ ct.study_title + " enriched context of HCP working on clinical trials : " + coalesce(apoc.text.join(hcpContexts,"\n"), "") +"\n" as text, score, metadata
 """
 
 contextualized_vectorstore = Neo4jVector.from_existing_index(
