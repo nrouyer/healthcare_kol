@@ -6,16 +6,14 @@ import st_pages as st_pages
 import os
 import langchain_openai as langchain_openai 
 
+from st_pages import show_pages_from_config
+
 st.set_page_config(
         page_title="Healthcare KOL",
 )
 
 #from streamlit_extras.app_logo import add_logo
 #add_logo("images/icon_accidents.png", height=10)
-
-
-
-from st_pages import show_pages_from_config
 
 show_pages_from_config()
 
@@ -96,6 +94,8 @@ vector_plus_context_qa = RetrievalQA.from_chain_type(
 
 # cypher dependency context
 graph.refresh_schema()
+
+print(graph.schema)
 
 cypher_dependency_context_qa = GraphCypherQAChain.from_llm(
     cypher_llm = ChatOpenAI(temperature=0, model_name='gpt-4'),
