@@ -80,12 +80,24 @@ WITH pub, score, metadata, collect(hcpContext) AS hcpContexts
 RETURN "Publication : "+ pub.title + " enriched context of HCP working on publication : " + coalesce(apoc.text.join(hcpContexts,"\n"), "") +"\n" as text, score, metadata
 """
 
-contextualized_vectorstore = Neo4jVector.from_existing_index(
+#contextualized_vectorstore = Neo4jVector.from_existing_index(
+#    OpenAIEmbeddings(),
+#    url=url,
+#    username=username,
+#    password=password,
+#    index_name="publications",
+#    retrieval_query=contextualize_query,
+#)
+
+contextualized_vectorstore = Neo4jVector.from_existing_graph(
     OpenAIEmbeddings(),
     url=url,
     username=username,
     password=password,
     index_name="publications",
+    node_label="Publication",
+    text_node_properties=["abstract", "title"],
+    embedding_node_property="pubEmbedding",
     retrieval_query=contextualize_query,
 )
 
