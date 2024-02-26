@@ -34,6 +34,7 @@ from langchain.chains import RetrievalQA
 from langchain_openai import ChatOpenAI
 from langchain.vectorstores.neo4j_vector import Neo4jVector
 from langchain_openai import OpenAIEmbeddings
+from langchain.chains import GraphCypherQAChain
 
 os.environ['OPENAI_API_KEY'] = st.secrets["OPENAI_KEY"]
 url = st.secrets["AAA_URI"]
@@ -48,6 +49,7 @@ graph = Neo4jGraph(
 
 llm = OpenAI()
 
+# Vector Search
 vectorstore = Neo4jVector.from_existing_graph(
     OpenAIEmbeddings(),
     url=url,
@@ -71,6 +73,7 @@ vectorstore = Neo4jVector.from_existing_graph(
 vector_qa = RetrievalQA.from_chain_type(
     llm=ChatOpenAI(), chain_type="stuff", retriever=vectorstore.as_retriever())
 
+# Vector + context
 contextualize_query = """
 match (node)<-[:PARTICIPATES_IN]-(hcp:HCP)
 WITH node AS pub, hcp, score, {} as metadata limit 1
@@ -91,12 +94,20 @@ contextualized_vectorstore = Neo4jVector.from_existing_index(
 vector_plus_context_qa = RetrievalQA.from_chain_type(
     llm=ChatOpenAI(), chain_type="stuff", retriever=contextualized_vectorstore.as_retriever())
 
+# cypher dependency context
+graph.refresh_schema()
+
+cypher_dependency_context_qa = GraphCypherQAChain.from_llm(
+    cypher_llm = ChatOpenAI(temperature=0, model_name='gpt-4'),
+    qa_llm = ChatOpenAI(temperature=0), graph=graph, verbose=True,
+)
+
 # Streamlit layout with tabs
 container = st.container()
 question = container.text_input("**:blue[Question:]**", "")
 
 if question:
-    tab1, tab2, tab3 = st.tabs(["No-RAG", "Basic RAG", "Augmented RAG"])
+    tab1, tab2, tab3, tab4 = st.tabs(["No-RAG", "Basic RAG", "Augmented RAG", "Dependency Questions"])
     with tab1:
         st.markdown("**:blue[No-RAG.] LLM only. AI responds to question; can cause hallucinations:**")
         st.write(llm(question))
@@ -105,6 +116,8 @@ if question:
         st.write(vector_qa.invoke(question))
     with tab3:
         st.markdown("**:blue[Augmented RAG.] Vector Search on publications plus HCP context:**")
-        st.write(vector_plus_context_qa.run(question))
-
+        st.write(vector_plus_context_qa.invoke(question))
+    with tab4:
+        st.markdown("**:blue[Dependency Questions.] LLM maps the underlying graph model:**")
+        st.write(cypher_dependency_context_qa.invoke(question))
 
