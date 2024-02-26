@@ -119,5 +119,5 @@ if question:
         st.write(vector_plus_context_qa.invoke(question))
     with tab4:
         st.markdown("**:blue[Dependency Questions.] LLM maps the underlying graph model:**")
-        st.write(cypher_dependency_context_qa.invoke(question))
+        st.write(cypher_dependency_context_qa.run(question))
 
