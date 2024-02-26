@@ -79,6 +79,21 @@ WITH pub, score, metadata, hcp, custom.hcp.pubctContext(hcp) AS hcpContext
 WITH pub, score, metadata, collect(hcpContext) AS hcpContexts
 RETURN "Publication : "+ pub.title + " enriched context of HCP working on publication : " + coalesce(apoc.text.join(hcpContexts,"\n"), "") +"\n" as text, score, metadata
 """
+contextualize_query_2 = """
+match (node)<-[:PARTICIPATES_IN]-(hcp:HCP)
+WITH node AS pub, hcp, score, {} as metadata limit 1
+OPTIONAL MATCH (hcp)-[rPub:PARTICIPATES_IN]-(p:Publication)
+WITH pub, score, metadata, hcp, type(rPub) + " " + labels(p)[0] as type, collect(p.title) as pubTitles
+WITH pub, score, metadata, hcp, type+": "+reduce(s="", n IN pubTitles | s + n + ", ") as types
+WITH pub, score, metadata, hcp, collect(types) as contextsPub
+OPTIONAL MATCH (hcp)-[rCt:PARTICIPATES_IN]-(ct:ClinicalTrial)
+WITH pub, score, metadata, hcp, contextsPub, type(rCt) + " " + labels(ct)[0] as type, collect(ct.study_title) as ctTitles
+WITH pub, score, metadata, hcp, contextsPub, type+": "+reduce(s="", n IN ctTitles | s + n + ", ") as types
+WITH pub, score, metadata, hcp, contextsPub, collect(types) as contextsCt
+RETURN "HCP name: "+ hcp.full_name + "\n" +
+reduce(s="", c in contextsPub | s + substring(c, 0, size(c)-2) +"\n") + "\n" +
+reduce(s="", c in contextsCt | s + substring(c, 0, size(c)-2) +"\n") as context
+"""
 
 #contextualized_vectorstore = Neo4jVector.from_existing_index(
 #    OpenAIEmbeddings(),
@@ -98,7 +113,7 @@ contextualized_vectorstore = Neo4jVector.from_existing_graph(
     node_label="Publication",
     text_node_properties=["abstract", "title"],
     embedding_node_property="pubEmbedding",
-    retrieval_query=contextualize_query,
+    retrieval_query=contextualize_query_2,
 )
 
 vector_plus_context_qa = RetrievalQA.from_chain_type(
